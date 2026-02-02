@@ -1,0 +1,7 @@
+node_modules
+pnpm-lock.yaml
+*.log
+apps/web/.next
+apps/web/.tmp-tests
+apps/web/out
+apps/api/dist

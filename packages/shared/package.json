@@ -1,0 +1,11 @@
+{
+  "name": "@security-hash/shared",
+  "version": "0.1.0",
+  "private": false,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "test": "echo \"No tests yet for shared\""
+  }
+}
