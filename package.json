@@ -5,6 +5,7 @@
   "packageManager": "pnpm@8.15.4",
   "scripts": {
     "dev": "sh -c \"pnpm --filter @security-hash/api start:dev & pnpm --filter @security-hash/web dev & wait\"",
+    "latency:test": "node ./scripts/latency-test.mjs",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "format": "prettier --write ."

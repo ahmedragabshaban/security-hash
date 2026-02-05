@@ -50,6 +50,18 @@ docker compose up --build
 
 The API will be available at http://localhost:3001 and the web app at http://localhost:3000.
 
+## Phase 3: Latency Measurement
+
+Start the stack first (e.g. `pnpm dev`), then run:
+
+```bash
+pnpm latency:test
+```
+
+Make sure ports `3000` (web) and `3001` (api) are free before running `pnpm dev`.
+
+Results append to `docs/latency-results.md`.
+
 ## Tooling
 
 - **pnpm workspaces** for dependency management.
