@@ -2,6 +2,11 @@
 
 This repository is a pnpm-managed monorepo with a web front end, API, and shared utilities.
 
+## Production Demo
+
+- URL: https://security-hash.ahmedmegahd.com
+- Hosting: AWS EC2 behind Cloudflare
+
 ## Structure
 
 - `apps/web`: Next.js front-end application.

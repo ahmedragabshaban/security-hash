@@ -15,6 +15,7 @@ import { BreachStatus, GenerateView } from '../components/generate/GenerateView'
 
 const GeneratePage = () => {
   const MAX_BREACH_RETRIES = 5;
+  const MAX_FETCH_RETRIES = 2;
 
   const [context, setContext] = useState<PolicyKey>('normal');
   const [mode, setMode] = useState<'password' | 'passphrase'>('password');
@@ -47,14 +48,29 @@ const GeneratePage = () => {
     const derivedPrefix = getPrefix(derivedHash);
     const derivedSuffix = getSuffix(derivedHash);
 
-    const response = await fetch(`/pwned/range/${derivedPrefix}`);
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= MAX_FETCH_RETRIES; attempt += 1) {
+      try {
+        const response = await fetch(`/pwned/range/${derivedPrefix}`);
 
-    if (!response.ok) {
-      throw new Error('Unable to query the breach service');
+        if (!response.ok) {
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('retry-after');
+            throw new Error(retryAfter ? `RATE_LIMITED:${retryAfter}` : 'RATE_LIMITED');
+          }
+          throw new Error(`BREACH_SERVICE_${response.status}`);
+        }
+
+        return parseHibpPayload(response, derivedSuffix);
+      } catch (error) {
+        lastError = error;
+        if (attempt >= MAX_FETCH_RETRIES) break;
+        await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      }
     }
 
-    return parseHibpPayload(response, derivedSuffix);
-  }, []);
+    throw lastError instanceof Error ? lastError : new Error('Unable to query the breach service');
+  }, [MAX_FETCH_RETRIES]);
 
   const ensureSafePassword = useCallback(
     async (initial: string) => {
@@ -87,7 +103,13 @@ const GeneratePage = () => {
           setOutput(candidate);
         } catch (err) {
           setBreachStatus({ status: 'error', attempts });
-          setError('Unable to verify the password against breach data right now.');
+          const message = err instanceof Error ? err.message : '';
+          if (message.startsWith('RATE_LIMITED')) {
+            const retryAfter = message.split(':')[1];
+            setError(retryAfter ? `Rate limited. Try again in ${retryAfter} seconds.` : 'Rate limited. Try again soon.');
+          } else {
+            setError('Unable to verify the password against breach data right now.');
+          }
           setOutput(candidate);
           return;
         }
